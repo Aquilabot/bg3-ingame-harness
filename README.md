@@ -170,6 +170,13 @@ pnpm test:python    # pointer backend tests (needs Pillow)
 
 None of these start BG3, Steam or touch the desktop.
 
+## Acknowledgements
+
+- [BG3 Script Extender](https://github.com/Norbyte/bg3se) by Norbyte (MIT with the Commons Clause). The harness mod runs on it. It is a runtime dependency you install yourself.
+- [LSLib](https://github.com/Norbyte/lslib) by Norbyte (MIT), used to pack the mods into `.pak` files.
+
+This is an unofficial fan project. It is not affiliated with or endorsed by Larian Studios. Baldur's Gate 3 is a trademark of its owners.
+
 ## License
 
 MIT. See [LICENSE](LICENSE).
