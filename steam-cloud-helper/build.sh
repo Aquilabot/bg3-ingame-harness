@@ -2,7 +2,7 @@
 set -euo pipefail
 
 script_directory="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
-repository_root="$(cd -- "$script_directory/../.." && pwd)"
+repository_root="$(cd -- "$script_directory/.." && pwd)"
 output_path="${1:-$repository_root/.cache/tools/steam-cloud-helper}"
 output_directory="$(dirname -- "$output_path")"
 
