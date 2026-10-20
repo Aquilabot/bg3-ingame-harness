@@ -16,7 +16,8 @@
     "test": "vitest run && pnpm test:lua",
     "test:lua": "for f in lua-tests/test-*.lua; do lua \"$f\" || exit 1; done",
     "test:python": "python -B pointer/test_bg3_pointer.py",
-    "bg3:test": "node --import tsx src/cli.ts"
+    "bg3:test": "node --import tsx src/cli.ts",
+    "mods:pack": "bash scripts/pack-mods.sh"
   },
   "devDependencies": {
     "@types/node": "^26.6.3",

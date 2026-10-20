@@ -3,3 +3,5 @@ node_modules/
 harness.config.json
 *.pak
 __pycache__/
+tools/lslib-packer/bin/
+tools/lslib-packer/obj/

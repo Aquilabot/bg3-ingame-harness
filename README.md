@@ -12,7 +12,7 @@ Scenarios are Lua functions that run in the game's server context. They make ass
 
 ## Status
 
-It works on the author's machine (Linux, Steam with Proton, Hyprland). Treat other setups as unsupported until someone tries them.
+`example.runtime-smoke` passed inside BG3 on 2026-10-20 on the author's machine (Linux, Steam with Proton, Hyprland, headless display). Treat other setups as unsupported until someone tries them.
 
 ## Requirements
 
@@ -24,7 +24,7 @@ It works on the author's machine (Linux, Steam with Proton, Hyprland). Treat oth
 - Node.js 24 or later and pnpm 12.6.0.
 - `lua` for the offline Lua tests (tested with Lua 5.5).
 - Hyprland for the default headless display mode (see below).
-- [LSLib](https://github.com/Norbyte/lslib) to pack `mod/` and your own mods into `.pak` files.
+- [LSLib](https://github.com/Norbyte/lslib) (tested with 1.20.4) and the .NET 10 SDK to pack the mods. Download the LSLib release yourself; `pnpm mods:pack` compiles a small packer in `tools/lslib-packer/` against it. LSLib's own `Divine` CLI rejects every path on Linux (`This operation is not supported for a relative URI`), which is why the packer exists.
 
 ## Layout
 
@@ -35,20 +35,30 @@ It works on the author's machine (Linux, Steam with Proton, Hyprland). Treat oth
 | `bridge/` | Client startup bridge loaded through `LuaBuiltinResourceDirectory`: skips the splash, loads the exact save or drives new-campaign creation |
 | `pointer/` | Optional Python pointer backend for scenarios that must hover a target with the real cursor |
 | `steam-cloud-helper/` | C++ helper that disables Steam Cloud for the run and restores it afterwards |
-| `examples/runtime-smoke/` | Example mod with one scenario, and an example `harness.config.json` |
+| `examples/runtime-smoke/` | Example mod (`mod/`) with one scenario, and an example `harness.config.json` |
+| `tools/lslib-packer/`, `scripts/` | Packer built against your LSLib download, and `pnpm mods:pack` |
 | `test/`, `lua-tests/` | Vitest and Lua tests. Neither starts BG3 |
 
 ## Setup
 
-1. Pack `mod/` and `examples/runtime-smoke/` with LSLib and install both `.pak` files in the BG3 `Mods` folder of the Proton prefix.
-2. Create a disposable save: start a new game with exactly the mods you will test, reach a point where the host character is in the world, and let an autosave happen. Do not use this save for anything else.
+1. Pack the harness mod and the example mod, then copy both files into the BG3 `Mods` folder of the Proton prefix (`.../compatdata/1086940/pfx/drive_c/users/steamuser/AppData/Local/Larian Studios/Baldur's Gate 3/Mods/`). You do not need to enable them in a mod manager; the runner writes a temporary load order for each run.
+
+   ```bash
+   LSLIB_DIR=/path/to/lslib/Packed/Tools pnpm mods:pack   # writes .cache/dist/BG3InGameHarness.pak and HarnessExample.pak
+   ```
+
+   The file names must match `packageFile` in your config. Remove the two files when you stop testing; BG3 ignores mods that are not in the load order, but nothing else needs them.
+2. Create a disposable save: start a new game with the mods your scenarios depend on, reach a point where the host character is in the world, and let an autosave happen. Do not use this save for anything else. An existing save works too: list its mods first in the fixture's `requiredMods.ordered`, then append the harness mod and your test mods. They do not have to be in the save; the runner loads them on top of it.
 3. Find its folder under `.../compatdata/1086940/pfx/drive_c/users/steamuser/AppData/Local/Larian Studios/Baldur's Gate 3/PlayerProfiles/Public/Savegames/Story/`. The folder name is the save ID. Hash its single `.lsv` file:
 
    ```bash
    sha256sum "<save folder>"/*.lsv
    ```
 
-4. Copy `examples/runtime-smoke/harness.config.example.json` to `harness.config.json` in your working directory (or point `BG3_HARNESS_CONFIG` at it). Fill in the save ID, the hash, the `modsettings.lsx` descriptors of every mod a scenario requires, and the saves the harness must never touch under `protectedSaves`.
+4. Copy `examples/runtime-smoke/harness.config.example.json` to `harness.config.json` in your working directory (or point `BG3_HARNESS_CONFIG` at it). Fill in:
+   - the save ID and hash;
+   - one `mods` entry for every mod in the fixture chain. Copy `Folder`, `MD5`, `Name`, `PublishHandle`, `UUID` and `Version64` from that mod's `ModuleShortDesc` node in your current `PlayerProfiles/Public/modsettings.lsx` (or from its `meta.lsx`), and set `packageFile` to the `.pak` file name in `Mods/`. The entries for the harness and example mods are already in the example;
+   - every save you care about under `protectedSaves`. Prefixes are the easiest way to cover a whole campaign (for example the character name that starts its save folders).
 5. Install dependencies and run the offline checks:
 
    ```bash
@@ -59,8 +69,20 @@ It works on the author's machine (Linux, Steam with Proton, Hyprland). Treat oth
 6. Close any manual BG3 session, then run a scenario:
 
    ```bash
+   export BG3_STEAM_API_LIBRARY=/path/to/steamworks/redistributable/linux64/libsteam_api.so
    pnpm bg3:test --scenario example.runtime-smoke
    ```
+
+   A passing run prints:
+
+   ```text
+   PASS mods-loaded: Required BG3 mods are loaded in order
+   PASS host-entity: The runtime fixture host resolves to a loaded entity (...)
+   PASS host-party-member: The runtime fixture host belongs to the active party (...)
+   PASS example.runtime-smoke
+   ```
+
+   If Steam is not running, the runner starts it with `steam -silent` and leaves it open afterwards. BG3 rewrites `PlayerProfiles/Public/config.lsf` when it exits; the settings stay the same but the file bytes change, so do not expect that one file to match a backup byte for byte.
 
 Run artifacts, including passing runs, are archived under `.cache/bg3-test-runs/<runId>/` with the new network, Gold and Script Extender logs, any crash dumps from that launch, and a manifest of sizes and SHA-256 hashes. `BG3_HARNESS_WORK_DIR` moves `.cache/`.
 
