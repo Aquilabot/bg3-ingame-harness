@@ -1,4 +1,4 @@
-local SCENARIO_PATH = "examples/runtime-smoke/Mods/HarnessExample_cd639062-7736-457d-aa6a-c364979b8921/ScriptExtender/Lua/Server/RuntimeSmoke.lua"
+local SCENARIO_PATH = "examples/runtime-smoke/mod/Mods/HarnessExample_cd639062-7736-457d-aa6a-c364979b8921/ScriptExtender/Lua/Server/RuntimeSmoke.lua"
 local HOST = "11111111-2222-3333-4444-555555555555"
 local HOST_ROW = "Elves_Female_High_Player_" .. HOST
 
