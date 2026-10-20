@@ -1,0 +1,5 @@
+node_modules/
+.cache/
+harness.config.json
+*.pak
+__pycache__/

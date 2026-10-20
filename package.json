@@ -1,0 +1,27 @@
+{
+  "name": "bg3-ingame-harness",
+  "version": "0.1.0",
+  "description": "Run scripted Baldur's Gate 3 scenarios inside the real game through Script Extender, with disposable saves and exact cleanup.",
+  "license": "MIT",
+  "author": "Jean Carlo Benites Porras",
+  "private": true,
+  "type": "module",
+  "packageManager": "pnpm@12.6.0",
+  "engines": {
+    "node": ">=24"
+  },
+  "scripts": {
+    "check": "pnpm typecheck && pnpm test",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run && pnpm test:lua",
+    "test:lua": "for f in lua-tests/test-*.lua; do lua \"$f\" || exit 1; done",
+    "test:python": "python -B pointer/test_bg3_pointer.py",
+    "bg3:test": "node --import tsx src/cli.ts"
+  },
+  "devDependencies": {
+    "@types/node": "^26.6.3",
+    "tsx": "^4.23.15",
+    "typescript": "^7.0.2",
+    "vitest": "^5.0.2"
+  }
+}
