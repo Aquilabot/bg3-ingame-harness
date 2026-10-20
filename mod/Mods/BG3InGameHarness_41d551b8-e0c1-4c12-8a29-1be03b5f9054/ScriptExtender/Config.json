@@ -1,0 +1,5 @@
+{
+  "RequiredVersion": 32,
+  "ModTable": "BG3InGameHarness",
+  "FeatureFlags": ["Lua"]
+}
