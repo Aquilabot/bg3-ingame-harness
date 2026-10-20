@@ -1,0 +1,53 @@
+{
+  "protectedSaves": {
+    "ids": ["MyMainCampaign"],
+    "prefixes": []
+  },
+  "mods": [
+    {
+      "folder": "BG3InGameHarness_41d551b8-e0c1-4c12-8a29-1be03b5f9054",
+      "md5": "",
+      "name": "BG3 In-Game Harness",
+      "packageFile": "BG3InGameHarness.pak",
+      "publishHandle": "0",
+      "uuid": "41d551b8-e0c1-4c12-8a29-1be03b5f9054",
+      "version64": "36028797018963968"
+    },
+    {
+      "folder": "HarnessExample_cd639062-7736-457d-aa6a-c364979b8921",
+      "md5": "",
+      "name": "Harness Example",
+      "packageFile": "HarnessExample.pak",
+      "publishHandle": "0",
+      "uuid": "cd639062-7736-457d-aa6a-c364979b8921",
+      "version64": "36028797018963968"
+    }
+  ],
+  "preloadModuleUuids": [],
+  "modDiagnostics": [],
+  "allowedRuntimeSaveIds": ["HarnessFixture-1__AutoSave_0"],
+  "runtimeFixtures": [
+    {
+      "id": "baseline",
+      "saveId": "HarnessFixture-1__AutoSave_0",
+      "expectedLsvSha256": "0000000000000000000000000000000000000000000000000000000000000000",
+      "requiredMods": {
+        "ordered": [
+          { "name": "BG3 In-Game Harness", "uuid": "41d551b8-e0c1-4c12-8a29-1be03b5f9054" },
+          { "name": "Harness Example", "uuid": "cd639062-7736-457d-aa6a-c364979b8921" }
+        ],
+        "present": []
+      }
+    }
+  ],
+  "scenarios": [
+    {
+      "id": "example.runtime-smoke",
+      "ownerModUuid": "cd639062-7736-457d-aa6a-c364979b8921",
+      "savePolicy": "never",
+      "timeoutMs": 360000,
+      "launch": { "kind": "runtime", "fixtureId": "baseline" },
+      "requiredAssertionIds": ["host-entity", "host-party-member"]
+    }
+  ]
+}
