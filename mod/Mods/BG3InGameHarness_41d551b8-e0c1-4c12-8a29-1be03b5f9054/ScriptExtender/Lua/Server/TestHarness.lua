@@ -30,8 +30,22 @@ local TestHarness = {}
 local contextExtensions = {}
 local finishRun
 
+-- ClockEpoch counts whole seconds; these timestamps only place a run inside its window.
 local function epochMilliseconds()
     return tonumber(Ext.Timer.ClockEpoch()) * 1000
+end
+
+-- Milliseconds from a steady clock, for durations. Nil when Script Extender cannot provide it.
+local function monotonicMilliseconds()
+    if Ext.Timer == nil or type(Ext.Timer.MonotonicTime) ~= "function" then
+        return nil
+    end
+    local ok, value = pcall(Ext.Timer.MonotonicTime)
+    value = ok and math.tointeger(tonumber(value)) or nil
+    if value == nil or value < 0 then
+        return nil
+    end
+    return value
 end
 
 local function isSafeRunId(runId)
@@ -271,6 +285,7 @@ local function saveResult(runId, result)
             status = "error",
             startedAtEpochMs = result.startedAtEpochMs,
             completedAtEpochMs = result.completedAtEpochMs,
+            durationMs = result.durationMs,
             assertions = {},
             error = {
                 code = "result-too-large",
@@ -581,6 +596,11 @@ local function persistFinalResult(state, status, errorValue)
         completedAtEpochMs = completedAtEpochMs,
         assertions = state.Assertions
     }
+    local finishedAtMonotonicMs = monotonicMilliseconds()
+    if state.StartedAtMonotonicMs ~= nil and finishedAtMonotonicMs ~= nil
+        and finishedAtMonotonicMs >= state.StartedAtMonotonicMs then
+        result.durationMs = finishedAtMonotonicMs - state.StartedAtMonotonicMs
+    end
     if errorValue ~= nil then
         result.error = {
             code = truncateString(errorValue.code, MAX_IDENTIFIER_LENGTH),
@@ -1621,6 +1641,7 @@ local function executeScenario(command, arm)
         Arm = arm,
         Scenario = scenario,
         StartedAtEpochMs = now,
+        StartedAtMonotonicMs = monotonicMilliseconds(),
         Assertions = {},
         AssertionIds = {},
         CleanupCallbacks = {},

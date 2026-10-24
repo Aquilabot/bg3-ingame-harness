@@ -2504,4 +2504,33 @@ do
     assert(not pcall(environment.Harness.ExtendContext, "not a function"), "A non-function extension was accepted")
 end
 print("BG3 test harness context extensions: 3 cases passed")
+
+-- ClockEpoch counts whole seconds, so the epoch timestamps alone would say 2000 ms;
+-- durationMs comes from the millisecond monotonic clock.
+for _, monotonic in ipairs({ true, false }) do
+    local environment = createEnvironment({ InitialEpochMilliseconds = 2400 })
+    if not monotonic then Ext.Timer.MonotonicTime = nil end
+    local runId = "run-duration-" .. tostring(monotonic)
+    local runRoot = "BG3InGameHarness/TestHarness/runs/" .. runId
+    environment.Harness.RegisterScenario({
+        Id = "example.runtime-mechanic", Mode = "runtime", SavePolicy = "never",
+        Run = function(context)
+            context:Assert("observation", true, "Observed native state")
+            environment.SetEpochMilliseconds(4100)
+            context:Finish()
+        end
+    })
+    environment.PutParsedFile(ARM_PATH, "ARM_DURATION", arm(runId))
+    environment.PutParsedFile(runRoot .. "/command.json", "COMMAND_DURATION", command(runId))
+    environment.SessionLoaded(); environment.RunLatestTimer()
+    local result = assert(environment.SavedValue(runRoot .. "/result.json"))
+    assert(result.status == "passed" and result.completedAtEpochMs - result.startedAtEpochMs == 2000,
+        "Epoch timestamps changed resolution")
+    if monotonic then
+        assert(result.durationMs == 1700, "durationMs did not come from the monotonic clock: " .. tostring(result.durationMs))
+    else
+        assert(result.durationMs == nil, "durationMs was reported without a monotonic clock")
+    end
+end
+print("BG3 test harness duration: 2 cases passed")
 print("BG3 test harness runtime test passed")

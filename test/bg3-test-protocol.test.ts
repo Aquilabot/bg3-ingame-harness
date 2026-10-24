@@ -63,6 +63,25 @@ describe("BG3 test result protocol", () => {
       parseBg3TestResult(result({ [field]: value }), expected),
     ).toThrow(`Result requires a non-negative integer ${field}`);
   });
+
+  it("keeps the millisecond duration measured inside the game", () => {
+    expect(parseBg3TestResult(result({ durationMs: 1734 }), expected).durationMs).toBe(1734);
+    expect(parseBg3TestResult(result(), expected)).not.toHaveProperty("durationMs");
+  });
+
+  it.each([-1, 1.5])("rejects an invalid durationMs of %s", (value) => {
+    expect(() =>
+      parseBg3TestResult(result({ durationMs: value }), expected),
+    ).toThrow("Result requires a non-negative integer durationMs");
+  });
+
+  it("rejects a duration longer than the run window", () => {
+    const window = { ...expected, createdAtEpochMs: 1000, expiresAtEpochMs: 9000 };
+    expect(parseBg3TestResult(result({ durationMs: 9000 }), window).durationMs).toBe(9000);
+    expect(() =>
+      parseBg3TestResult(result({ durationMs: 9001 }), window),
+    ).toThrow("Result durationMs exceeds the active run window");
+  });
 });
 
 describe("BG3 character-creation client readiness protocol", () => {

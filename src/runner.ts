@@ -356,7 +356,7 @@ export async function runBg3Test(
       platform.writeOutput(`ERROR ${result.error.code}: ${result.error.message}`);
     }
     platform.writeOutput(
-      `TIME ${scenario.id}: ${result.completedAtEpochMs - result.startedAtEpochMs} ms`,
+      `TIME ${scenario.id}: ${result.durationMs ?? result.completedAtEpochMs - result.startedAtEpochMs} ms`,
     );
     if (
       scenario.launch.kind === "character-creation" &&

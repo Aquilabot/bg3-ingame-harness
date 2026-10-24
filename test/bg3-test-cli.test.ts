@@ -975,6 +975,40 @@ describe("bg3:test CLI", () => {
     expect(output).toContain("TIME core.runtime-smoke: 250 ms");
   });
 
+  it("prints the millisecond duration when the game measured one", async () => {
+    const output: string[] = [];
+    const platform: Bg3TestPlatform = {
+      archiveRunArtifacts: async () => undefined,
+      armRun: async () => undefined,
+      cleanupRun: async () => undefined,
+      launchGame: async () => ({ pid: 4102, startTimeTicks: "778899" }),
+      now: () => new Date("2026-08-27T14:00:00.000Z"),
+      readResult: async () =>
+        JSON.stringify({
+          schemaVersion: 2,
+          runId: "run-duration",
+          scenarioId: "core.runtime-smoke",
+          status: "error",
+          startedAtEpochMs: 1787839201000,
+          completedAtEpochMs: 1787839203000,
+          durationMs: 1734,
+          assertions: [],
+          error: { code: "fixture-failed", message: "Could not create the resistant target" },
+        }),
+      runId: () => "run-duration",
+      terminateGame: async () => undefined,
+      waitForModLoad: async () => undefined,
+      waitForSaveLoaded: async () => undefined,
+      writeCommand: async () => undefined,
+      writeOutput: (line) => output.push(line),
+    };
+
+    await runBg3Test(["--scenario", "core.runtime-smoke"], platform, testCatalog);
+
+    expect(output).toContain("TIME core.runtime-smoke: 1734 ms");
+    expect(output).not.toContain("TIME core.runtime-smoke: 2000 ms");
+  });
+
   it("cleans the run even when terminating BG3 fails", async () => {
     const events: string[] = [];
     const platform: Bg3TestPlatform = {

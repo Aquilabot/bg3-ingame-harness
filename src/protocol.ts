@@ -59,6 +59,8 @@ export interface Bg3TestResult {
   status: "passed" | "failed" | "error";
   startedAtEpochMs: number;
   completedAtEpochMs: number;
+  /** Measured in the game with a millisecond clock; the epoch timestamps only count whole seconds. */
+  durationMs?: number;
   assertions: Bg3TestAssertion[];
   error?: Bg3TestError;
 }
@@ -715,6 +717,19 @@ export function parseBg3TestResult(
   }
   requireTimestampInRunWindow(startedAtEpochMs, "Result start", expected);
   requireTimestampInRunWindow(completedAtEpochMs, "Result completion", expected);
+  let durationMs: number | undefined;
+  if (value.durationMs !== undefined) {
+    durationMs = requireEpochMilliseconds(value, "durationMs");
+    // startedAtEpochMs is rounded down to the second, so allow one second on top of the window.
+    if (
+      expected.expiresAtEpochMs !== undefined &&
+      durationMs > expected.expiresAtEpochMs - startedAtEpochMs + 1_000
+    ) {
+      throw new Bg3TestProtocolError(
+        "Result durationMs exceeds the active run window",
+      );
+    }
+  }
 
   let resultError: Bg3TestError | undefined;
   if (value.error !== undefined) {
@@ -768,6 +783,7 @@ export function parseBg3TestResult(
     status: value.status,
     startedAtEpochMs,
     completedAtEpochMs,
+    ...(durationMs === undefined ? {} : { durationMs }),
     assertions,
     ...(resultError === undefined ? {} : { error: resultError }),
   };
