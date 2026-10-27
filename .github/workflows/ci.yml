@@ -1,0 +1,36 @@
+name: CI
+
+# Offline checks only: TypeScript, Vitest, the Lua fixture suites and the pointer
+# backend tests. Nothing here starts BG3.
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 24
+          cache: pnpm
+      # Script Extender runs Lua 5.4.
+      - name: Install Lua 5.4
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y lua5.4
+          sudo ln -sf "$(command -v lua5.4)" /usr/local/bin/lua
+      - uses: actions/setup-python@v6
+        with:
+          python-version: '3.13'
+      - run: pip install pillow
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm typecheck
+      - run: pnpm test
+      - run: pnpm test:python

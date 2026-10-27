@@ -1,5 +1,7 @@
 # BG3 In-Game Harness
 
+[![CI](https://github.com/Aquilabot/bg3-ingame-harness/actions/workflows/ci.yml/badge.svg)](https://github.com/Aquilabot/bg3-ingame-harness/actions/workflows/ci.yml)
+
 Run scripted test scenarios inside the real Baldur's Gate 3, through Script Extender, from one command:
 
 ```bash
